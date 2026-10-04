@@ -18,6 +18,8 @@
     .btn { display: inline-block; background: #238636; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; text-decoration: none; text-align: center; }
     .btn:hover { background: #2ea043; }
     .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); }
+    .btn-purple { background: #8957e5; color: #fff; }
+    .btn-purple:hover { background: #9c73e8; }
     .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
     .metric-box { background: #0d1117; border: 1px solid var(--border); padding: 12px; border-radius: 6px; text-align: center; }
     .metric-val { font-size: 20px; font-weight: bold; color: var(--accent-blue); }
@@ -35,7 +37,6 @@
     <div class="tagline">«Don't use less AI. Use AI better.»</div>
   </header>
 
-  <!-- DApp Interactive UI -->
   <div class="card">
     <label>Test the Optimizer Engine</label>
     <textarea id="promptInput" placeholder="Paste a wordy prompt here to test the logic..."></textarea>
@@ -63,18 +64,18 @@
     <div class="tx-receipt" id="receiptOutput"></div>
   </div>
 
-  <!-- Extension Download Section -->
   <div class="card download-section" style="border-top: 3px solid #30363d;">
     <label style="font-size: 18px; margin-bottom: 4px;">Install the Browser Extension</label>
     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Bring this capability directly into your ChatGPT and Gemini interfaces.</p>
     
-    <a class="btn" href="https://chrome.google.com/webstore" target="_blank">Install for Google Chrome</a>
+    <a class="btn btn-purple" href="https://github.com/outsidegem/waterprint-ledger/archive/refs/heads/main.zip">📥 Download ZIP (Developer Mode)</a>
+    <a class="btn btn-secondary" href="https://chrome.google.com/webstore" target="_blank">Install for Google Chrome</a>
     <a class="btn btn-secondary" href="https://microsoftedge.microsoft.com/addons" target="_blank">Install for Microsoft Edge</a>
     
     <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
         <label style="font-size: 14px;">Mobile Visitor?</label>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Browser extensions require a desktop environment. Tap below to email yourself the installation link for your workstation.</p>
-        <a class="btn btn-secondary" href="mailto:?subject=Install%20WaterPrint&body=Hey,%20install%20the%20WaterPrint%20extension%20on%20your%20desktop%20browser%20here:%20https://chrome.google.com/webstore">📧 Email Me the Desktop Link</a>
+        <a class="btn btn-secondary" href="mailto:?subject=Install%20WaterPrint&body=Hey,%20download%20and%20install%20the%20WaterPrint%20extension%20on%20your%20desktop%20browser%20here:%20https://outsidegem.github.io/waterprint-ledger/">📧 Email Me the Desktop Link</a>
     </div>
   </div>
 
