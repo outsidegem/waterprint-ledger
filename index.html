@@ -5,38 +5,164 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WaterPrint · AI Resource Governance</title>
   <style>
-    :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --accent-blue: #58a6ff; --accent-green: #39d353; --text: #c9d1d9; --muted: #8b949e; }
+    :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --accent-blue:#58a6ff; --accent-cyan:#39d353; --text:#c9d1d9; --text-muted:#8b949e; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 32px 16px; line-height: 1.6; }
-    .container { max-width: 600px; margin: 0 auto; text-align: center; }
-    h1 { font-size: 28px; color: #fff; margin-bottom: 8px; }
-    .tagline { font-size: 16px; color: var(--accent-green); font-weight: 600; margin-bottom: 24px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; text-align: left; }
-    .btn { display: block; width: 100%; background: #238636; color: #fff; text-decoration: none; padding: 12px; border-radius: 6px; font-weight: bold; text-align: center; margin-top: 16px; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 24px 16px; line-height: 1.5; }
+    .container { max-width: 760px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 28px; }
+    header h1 { font-size: 28px; color: #fff; margin-bottom: 6px; }
+    .tagline { font-size: 16px; color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #fff; }
+    textarea { width: 100%; height: 110px; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 12px; color: #fff; font-size: 14px; resize: vertical; }
+    .btn { display: inline-block; background: #238636; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; text-decoration: none; text-align: center; }
     .btn:hover { background: #2ea043; }
-    .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); margin-top: 8px; }
-    .muted { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .metric-box { background: #0d1117; border: 1px solid var(--border); padding: 12px; border-radius: 6px; text-align: center; }
+    .metric-val { font-size: 20px; font-weight: bold; color: var(--accent-blue); }
+    .metric-val.green { color: var(--accent-cyan); }
+    .metric-sub { font-size: 12px; color: var(--text-muted); }
+    .result-box { margin-top: 16px; padding: 12px; background: #0d1117; border-left: 3px solid var(--accent-cyan); font-size: 13px; }
+    .tx-receipt { margin-top: 12px; padding: 12px; background: #1c2128; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; }
+    .download-section a { display: block; width: 100%; margin-bottom: 12px; margin-left: 0; }
   </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
+  <header>
     <h1>💧 WaterPrint</h1>
     <div class="tagline">«Don't use less AI. Use AI better.»</div>
+  </header>
 
-    <div class="card">
-      <h3 style="color:#fff; margin-bottom: 8px;">Mobile Visitor?</h3>
-      <p style="font-size: 14px; color: var(--muted);">Browser extensions require a desktop environment (Chrome, Edge, or Brave). Tap below to email yourself the installation link for your workstation.</p>
-      <a class="btn" href="mailto:?subject=Install%20WaterPrint&body=Hey,%20install%20the%20WaterPrint%20extension%20on%20your%20desktop%20browser%20here:%20https://chrome.google.com/webstore">📧 Email Me the Desktop Link</a>
+  <!-- DApp Interactive UI -->
+  <div class="card">
+    <label>Test the Optimizer Engine</label>
+    <textarea id="promptInput" placeholder="Paste a wordy prompt here to test the logic..."></textarea>
+    <div>
+      <button class="btn" id="optimizeBtn">⚡ Lint & Optimize</button>
+      <button class="btn btn-secondary" id="attestBtn" style="margin-left: 8px;">📜 Prepare Attestation</button>
     </div>
-
-    <div class="card">
-      <h3 style="color:#fff; margin-bottom: 8px;">Direct Installations</h3>
-      <p style="font-size: 14px; color: var(--muted);">Already on a desktop browser? Install directly from the official stores:</p>
-      <a class="btn" href="https://chrome.google.com/webstore" target="_blank">Install for Google Chrome</a>
-      <a class="btn btn-secondary" href="https://microsoftedge.microsoft.com/addons" target="_blank">Install for Microsoft Edge</a>
+    <div class="metrics-grid">
+      <div class="metric-box"><div class="metric-val" id="baselineEnergy">0 mWh</div><div class="metric-sub">Baseline Energy</div></div>
+      <div class="metric-box"><div class="metric-val" id="baselineWater">0 µL</div><div class="metric-sub">Baseline Water</div></div>
     </div>
-
-    <p class="muted"><a href="privacy.html" style="color: var(--accent-blue); text-decoration: none;">Privacy Policy</a> · Zero Telemetry · Open Source</p>
   </div>
+
+  <div class="card" id="optimizationCard" style="display: none;">
+    <label>Optimization Analysis (estimated_avoided)</label>
+    <div class="result-box" id="optimizationSummary"></div>
+    <div class="metrics-grid">
+      <div class="metric-box"><div class="metric-val green" id="avoidedEnergy">0 mWh</div><div class="metric-sub">Energy Avoided</div></div>
+      <div class="metric-box"><div class="metric-val green" id="avoidedWater">0 µL</div><div class="metric-sub">Water Avoided</div></div>
+    </div>
+  </div>
+
+  <div class="card" id="ledgerCard" style="display: none;">
+    <label>Immutable Attestation Payload</label>
+    <div class="tx-receipt" id="receiptOutput"></div>
+  </div>
+
+  <!-- Extension Download Section -->
+  <div class="card download-section" style="border-top: 3px solid #30363d;">
+    <label style="font-size: 18px; margin-bottom: 4px;">Install the Browser Extension</label>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Bring this capability directly into your ChatGPT and Gemini interfaces.</p>
+    
+    <a class="btn" href="https://chrome.google.com/webstore" target="_blank">Install for Google Chrome</a>
+    <a class="btn btn-secondary" href="https://microsoftedge.microsoft.com/addons" target="_blank">Install for Microsoft Edge</a>
+    
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <label style="font-size: 14px;">Mobile Visitor?</label>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Browser extensions require a desktop environment. Tap below to email yourself the installation link for your workstation.</p>
+        <a class="btn btn-secondary" href="mailto:?subject=Install%20WaterPrint&body=Hey,%20install%20the%20WaterPrint%20extension%20on%20your%20desktop%20browser%20here:%20https://chrome.google.com/webstore">📧 Email Me the Desktop Link</a>
+    </div>
+  </div>
+
+  <p style="text-align:center; font-size: 13px; color: var(--text-muted);"><a href="privacy.html" style="color: var(--accent-blue); text-decoration: none;">Privacy Policy</a> · Zero Telemetry · Open Source</p>
+</div>
+
+<script>
+  const BASE_ENERGY_MWH = 340; 
+  const BASE_WATER_UML = 320; 
+
+  const promptInput = document.getElementById('promptInput');
+  const optimizeBtn = document.getElementById('optimizeBtn');
+  const attestBtn = document.getElementById('attestBtn');
+  const baselineEnergyEl = document.getElementById('baselineEnergy');
+  const baselineWaterEl = document.getElementById('baselineWater');
+  const optimizationCard = document.getElementById('optimizationCard');
+  const optimizationSummary = document.getElementById('optimizationSummary');
+  const avoidedEnergyEl = document.getElementById('avoidedEnergy');
+  const avoidedWaterEl = document.getElementById('avoidedWater');
+  const ledgerCard = document.getElementById('ledgerCard');
+  const receiptOutput = document.getElementById('receiptOutput');
+
+  let currentAvoidedMWh = 0;
+  let currentAvoidedUml = 0;
+
+  promptInput.addEventListener('input', () => {
+    const text = promptInput.value.trim();
+    if (!text) {
+        baselineEnergyEl.innerText = "0 mWh";
+        baselineWaterEl.innerText = "0 µL";
+        return;
+    }
+    const tokenEst = Math.max(1, Math.ceil(text.length / 4));
+    const factor = 1 + (tokenEst / 100) * 0.15;
+    baselineEnergyEl.innerText = Math.round(BASE_ENERGY_MWH * factor) + " mWh";
+    baselineWaterEl.innerText = Math.round(BASE_WATER_UML * factor) + " µL";
+  });
+
+  function optimizeText(raw) {
+    let clean = raw
+      .replace(/\b(As an AI( language model)?|Certainly!?|I'?d be happy to help|Sure thing!?|Here is the( information)?)\b/gi, '')
+      .replace(/\b(please\s+(can\s+you\s+)?(kindly\s+)?|can\s+you\s+(please\s+)?|i\s+want\s+you\s+to\s+know\s+that|you\s+see\s+what\s+i\s+mean\??)\b/gi, '')
+      .replace(/\b(it is (important|crucial) to note that|as a matter of fact|at the end of the day|due to the fact that|needless to say|for the purpose of|in order to)\b/gi, '')
+      .replace(/\b(very|really|basically|essentially|literally|totally|definitely|actually|just|simply)\b/gi, '')
+      .replace(/([.?!])\1+/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    return clean.length > 5 ? clean : raw;
+  }
+
+  optimizeBtn.addEventListener('click', () => {
+    const raw = promptInput.value.trim();
+    if (!raw) return;
+
+    const optimized = optimizeText(raw);
+    const rawTokens = Math.max(1, Math.ceil(raw.length / 4));
+    const optTokens = Math.max(1, Math.ceil(optimized.length / 4));
+    
+    const baseEnergy = Math.round(BASE_ENERGY_MWH * (1 + (rawTokens / 100) * 0.15));
+    const optEnergy = Math.round(BASE_ENERGY_MWH * (1 + (optTokens / 100) * 0.15));
+    const baseWater = Math.round(BASE_WATER_UML * (1 + (rawTokens / 100) * 0.15));
+    const optWater = Math.round(BASE_WATER_UML * (1 + (optTokens / 100) * 0.15));
+
+    currentAvoidedMWh = Math.max(0, baseEnergy - optEnergy);
+    currentAvoidedUml = Math.max(0, baseWater - optWater);
+
+    optimizationSummary.innerHTML = `<strong>Optimized Prompt:</strong> "${optimized}"<br><span style="color:#8b949e">Tokens reduced from ${rawTokens} to ${optTokens}.</span>`;
+    avoidedEnergyEl.innerText = currentAvoidedMWh + " mWh";
+    avoidedWaterEl.innerText = currentAvoidedUml + " µL";
+    optimizationCard.style.display = 'block';
+  });
+
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  attestBtn.addEventListener('click', async () => {
+    if (!promptInput.value.trim()) return;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const canonicalString = `node=0x1111|mwh=${currentAvoidedMWh}|uml=${currentAvoidedUml}|v=1|ts=${timestamp}`;
+    const canonicalHash = await sha256(canonicalString);
+
+    receiptOutput.innerHTML = `<strong>Canonical Hash:</strong> ${canonicalHash}<br><strong>Energy Avoided:</strong> ${currentAvoidedMWh} mWh<br><strong>Water Avoided:</strong> ${currentAvoidedUml} µL<br><strong>Accounting Type:</strong> estimated_avoided`;
+    ledgerCard.style.display = 'block';
+  });
+</script>
 </body>
 </html>
