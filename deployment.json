@@ -1,0 +1,12 @@
+{
+  "network": "Arc Mainnet",
+  "chainId": 5042,
+  "contractName": "WaterPrintLedger",
+  "contractAddress": "0xb496DF307d4C524411778e5b975032e3415102ac",
+  "deploymentTransaction": "0xbda93bc7d2cef4853310a90b5a40327058c5f3de676cd8390be745104921081d",
+  "deploymentBlock": 27755365,
+  "compilerVersion": "0.8.34",
+  "verificationStatus": "Deployment transaction and contract code previously checked; independent source-to-bytecode verification pending",
+  "accountingType": "estimated_avoided",
+  "note": "Resource savings are estimates, not independently verified physical measurements."
+}

@@ -1,65 +1,61 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
 
-/**
- * @title WaterPrintLedger
- * @notice Immutable on-chain registry for verified avoided AI resource events.
- * @dev Records estimated_avoided telemetry without claiming physical restoration.
- */
 contract WaterPrintLedger {
-
-    struct AvoidedRecord {
-        bytes32 nodeOrAgentId;
-        bytes32 canonicalHash;      // SHA-256 hash of event metadata (safeInput projection)
-        uint32 avoidedEnergyMWh;    // Milliwatt-hours avoided
-        uint32 avoidedWaterUml;     // Microliters of water avoided
-        uint16 methodologyVersion;  // Methodology version parameter
-        uint64 timestamp;
+    struct Attestation {
+        bytes32 canonicalHash;
+        address nodeAddress;
+        uint256 energyAvoidedMWh;
+        uint256 waterAvoidedUml;
+        uint256 timestamp;
+        string accountingType;
     }
 
-    event ResourceAvoidedLogged(
-        bytes32 indexed nodeOrAgentId,
+    Attestation[] public attestations;
+    mapping(bytes32 => bool) public registeredHashes;
+
+    event AttestationRecorded(
         bytes32 indexed canonicalHash,
-        uint32 avoidedEnergyMWh,
-        uint32 avoidedWaterUml,
-        uint16 methodologyVersion,
-        uint64 timestamp
+        address indexed nodeAddress,
+        uint256 energyAvoidedMWh,
+        uint256 waterAvoidedUml,
+        uint256 timestamp
     );
 
-    AvoidedRecord[] public ledger;
+    error HashAlreadyRegistered(bytes32 hash);
+    error InvalidHash();
 
-    function recordAvoidedCompute(
-        bytes32 _nodeOrAgentId,
+    function recordAttestation(
         bytes32 _canonicalHash,
-        uint32 _avoidedEnergyMWh,
-        uint32 _avoidedWaterUml,
-        uint16 _methodologyVersion
-    ) external returns (uint256 entryIndex) {
-        AvoidedRecord memory newRecord = AvoidedRecord({
-            nodeOrAgentId: _nodeOrAgentId,
+        uint256 _energyAvoidedMWh,
+        uint256 _waterAvoidedUml
+    ) external {
+        if (_canonicalHash == bytes32(0)) revert InvalidHash();
+        if (registeredHashes[_canonicalHash]) {
+            revert HashAlreadyRegistered(_canonicalHash);
+        }
+
+        registeredHashes[_canonicalHash] = true;
+
+        attestations.push(Attestation({
             canonicalHash: _canonicalHash,
-            avoidedEnergyMWh: _avoidedEnergyMWh,
-            avoidedWaterUml: _avoidedWaterUml,
-            methodologyVersion: _methodologyVersion,
-            timestamp: uint64(block.timestamp)
-        });
+            nodeAddress: msg.sender,
+            energyAvoidedMWh: _energyAvoidedMWh,
+            waterAvoidedUml: _waterAvoidedUml,
+            timestamp: block.timestamp,
+            accountingType: "estimated_avoided"
+        }));
 
-        ledger.push(newRecord);
-        entryIndex = ledger.length - 1;
-
-        emit ResourceAvoidedLogged(
-            _nodeOrAgentId,
+        emit AttestationRecorded(
             _canonicalHash,
-            _avoidedEnergyMWh,
-            _avoidedWaterUml,
-            _methodologyVersion,
-            uint64(block.timestamp)
+            msg.sender,
+            _energyAvoidedMWh,
+            _waterAvoidedUml,
+            block.timestamp
         );
-
-        return entryIndex;
     }
 
-    function totalRecords() external view returns (uint256) {
-        return ledger.length;
+    function totalAttestations() external view returns (uint256) {
+        return attestations.length;
     }
 }

@@ -1,0 +1,31 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*keystore*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+__pycache__/
+*.pyc
+
+# Unreviewed local deployment scripts
+/deploy.py
+/bridge_deploy.py
+
+# Logs and editor files
+*.log
+.DS_Store
+
+# Local pre-release backups
+README.md.pre-release-backup
