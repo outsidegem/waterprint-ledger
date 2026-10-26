@@ -64,6 +64,18 @@
     <div class="tx-receipt" id="receiptOutput"></div>
   </div>
 
+
+  <div class="card" id="onchainCard">
+    <label style="font-size:18px">Base Mainnet Attestation</label>
+    <p style="font-size:13px;color:var(--text-muted)">
+      Contract: 0xD50B9E552e676D2904aC92E5e7336fF2453aA9b1
+    </p>
+    <button class="btn" id="walletConnectBtn">Connect Base Wallet</button>
+    <button class="btn btn-secondary" id="walletApproveBtn" disabled>Approve 0.01 USDC</button>
+    <button class="btn btn-secondary" id="walletSubmitBtn" disabled>Submit Attestation</button>
+    <div class="result-box" id="walletStatus">Not connected. No transaction sent.</div>
+  </div>
+
   <div class="card download-section" style="border-top: 3px solid #30363d;">
     <label style="font-size: 18px; margin-bottom: 4px;">Install the Browser Extension</label>
     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Bring this capability directly into your ChatGPT and Gemini interfaces.</p>
@@ -82,6 +94,7 @@
   <p style="text-align:center; font-size: 13px; color: var(--text-muted);"><a href="privacy.html" style="color: var(--accent-blue); text-decoration: none;">Privacy Policy</a> · Zero Telemetry · Open Source</p>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
 <script>
   const BASE_ENERGY_MWH = 340; 
   const BASE_WATER_UML = 320; 
@@ -155,15 +168,162 @@
     return '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  attestBtn.addEventListener('click', async () => {
-    if (!promptInput.value.trim()) return;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const canonicalString = `node=0x1111|mwh=${currentAvoidedMWh}|uml=${currentAvoidedUml}|v=1|ts=${timestamp}`;
-    const canonicalHash = await sha256(canonicalString);
 
-    receiptOutput.innerHTML = `<strong>Canonical Hash:</strong> ${canonicalHash}<br><strong>Energy Avoided:</strong> ${currentAvoidedMWh} mWh<br><strong>Water Avoided:</strong> ${currentAvoidedUml} µL<br><strong>Accounting Type:</strong> estimated_avoided`;
-    ledgerCard.style.display = 'block';
+  const WP_CONTRACT = "0xD50B9E552e676D2904aC92E5e7336fF2453aA9b1";
+  const WP_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+  const WP_TREASURY = "0xD627D4393Ca376450f35d044680Ad99Db8B89716";
+  const WP_FEE = 10000n;
+  const wpAbi = [
+    "function usdc() view returns (address)",
+    "function TREASURY() view returns (address)",
+    "function SERVICE_FEE() view returns (uint256)",
+    "function totalAttestations() view returns (uint256)",
+    "function recordAttestation(bytes32,uint256,uint256)"
+  ];
+  const usdcAbi = [
+    "function approve(address,uint256) returns (bool)",
+    "function allowance(address,address) view returns (uint256)",
+    "function balanceOf(address) view returns (uint256)"
+  ];
+
+  let wpProvider, wpSigner, wpAccount, wpContract, wpUsdc, wpHash;
+  const wpStatus = document.getElementById("walletStatus");
+  const wpConnect = document.getElementById("walletConnectBtn");
+  const wpApprove = document.getElementById("walletApproveBtn");
+  const wpSubmit = document.getElementById("walletSubmitBtn");
+
+  function wpSay(message) { wpStatus.textContent = message; }
+
+  wpConnect.addEventListener("click", async () => {
+    try {
+      if (!window.ethereum) throw new Error("Open this page in a browser with your Base wallet.");
+      if (!window.ethers) throw new Error("Wallet library did not load. Check your internet connection.");
+      wpProvider = new ethers.BrowserProvider(window.ethereum);
+      await wpProvider.send("eth_requestAccounts", []);
+      const net = await wpProvider.getNetwork();
+      if (net.chainId !== 8453n) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x2105" }]
+          });
+        } catch {
+          throw new Error("Switch your wallet to Base Mainnet, then reconnect.");
+        }
+        wpProvider = new ethers.BrowserProvider(window.ethereum);
+      }
+      if ((await wpProvider.getNetwork()).chainId !== 8453n)
+        throw new Error("Wallet is not on Base Mainnet.");
+
+      wpSigner = await wpProvider.getSigner();
+      wpAccount = await wpSigner.getAddress();
+      wpContract = new ethers.Contract(WP_CONTRACT, wpAbi, wpSigner);
+      wpUsdc = new ethers.Contract(WP_USDC, usdcAbi, wpSigner);
+
+      const [liveUsdc, liveTreasury, liveFee] = await Promise.all([
+        wpContract.usdc(), wpContract.TREASURY(), wpContract.SERVICE_FEE()
+      ]);
+      if (liveUsdc.toLowerCase() !== WP_USDC.toLowerCase() ||
+          liveTreasury.toLowerCase() !== WP_TREASURY.toLowerCase() ||
+          liveFee !== WP_FEE)
+        throw new Error("On-chain configuration mismatch. Stopped for safety.");
+
+      wpApprove.disabled = false;
+      wpSay("Connected: " + wpAccount + ". Base Mainnet verified. Prepare an attestation next.");
+    } catch (e) {
+      wpSay("Connection stopped: " + (e.shortMessage || e.message || e));
+    }
   });
+
+  attestBtn.addEventListener("click", async () => {
+    try {
+      if (!wpAccount) throw new Error("Connect your Base wallet first.");
+      const raw = promptInput.value.trim();
+      if (!raw) throw new Error("Enter a prompt first.");
+      if (BigInt(currentAvoidedMWh) === 0n && BigInt(currentAvoidedUml) === 0n)
+        throw new Error("Both estimated savings are zero. Optimize the prompt before attesting.");
+      const timestamp = Math.floor(Date.now() / 1000);
+      const canonicalString =
+        `node=${wpAccount.toLowerCase()}|mwh=${currentAvoidedMWh}|uml=${currentAvoidedUml}|v=1|ts=${timestamp}`;
+      wpHash = await sha256(canonicalString);
+      receiptOutput.textContent =
+        "Canonical hash: " + wpHash +
+        "\nWallet: " + wpAccount +
+        "\nEnergy avoided (estimated): " + currentAvoidedMWh + " mWh" +
+        "\nWater avoided (estimated): " + currentAvoidedUml + " µL" +
+        "\nAccounting: estimated_avoided";
+      ledgerCard.style.display = "block";
+      wpSubmit.disabled = false;
+      wpSay("Attestation prepared. Approve the exact 0.01 USDC fee before submitting.");
+    } catch (e) {
+      wpSay(e.message || String(e));
+    }
+  });
+
+  wpApprove.addEventListener("click", async () => {
+    try {
+      if (!wpSigner) throw new Error("Connect your wallet first.");
+      if ((await wpProvider.getNetwork()).chainId !== 8453n)
+        throw new Error("Switch to Base Mainnet.");
+      const balance = await wpUsdc.balanceOf(wpAccount);
+      if (balance < WP_FEE)
+        throw new Error("This wallet needs at least 0.01 USDC on Base to pay the service fee.");
+      wpApprove.disabled = true;
+      wpSay("Requesting approval for exactly 0.01 USDC. Review the wallet prompt.");
+      const tx = await wpUsdc.approve(WP_CONTRACT, WP_FEE);
+      wpSay("Approval submitted: " + tx.hash + ". Waiting for confirmation…");
+      const receipt = await tx.wait();
+      if (receipt.status !== 1) throw new Error("Approval transaction failed.");
+      wpSay("USDC approval confirmed. It authorizes exactly 0.01 USDC for this contract.");
+    } catch (e) {
+      wpSay("Approval stopped/rejected: " + (e.shortMessage || e.message || e));
+    } finally {
+      wpApprove.disabled = !wpSigner;
+    }
+  });
+
+  wpSubmit.addEventListener("click", async () => {
+    try {
+      if (!wpSigner || !wpHash) throw new Error("Connect and prepare an attestation first.");
+      if ((await wpProvider.getNetwork()).chainId !== 8453n)
+        throw new Error("Switch to Base Mainnet.");
+      const allowance = await wpUsdc.allowance(wpAccount, WP_CONTRACT);
+      if (allowance < WP_FEE)
+        throw new Error("Insufficient allowance. Select Approve 0.01 USDC first.");
+      wpSubmit.disabled = true;
+      wpSay("Requesting attestation transaction. Review the wallet prompt before confirming.");
+      const tx = await wpContract.recordAttestation(
+        wpHash, BigInt(currentAvoidedMWh), BigInt(currentAvoidedUml)
+      );
+      wpSay("Attestation submitted: " + tx.hash + ". Waiting for confirmation…");
+      const receipt = await tx.wait();
+      if (receipt.status !== 1) throw new Error("Attestation transaction failed.");
+      const count = await wpContract.totalAttestations();
+      wpSay("Attestation confirmed. Total on-chain attestations: " + count.toString() + ".");
+      receiptOutput.textContent +=
+        "\nTransaction: " + tx.hash +
+        "\nBaseScan: https://basescan.org/tx/" + tx.hash +
+        "\nConfirmed on-chain. Total attestations: " + count.toString();
+      const link = document.createElement("a");
+      link.href = "https://basescan.org/tx/" + tx.hash;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "View confirmed attestation on BaseScan";
+      receiptOutput.appendChild(document.createElement("br"));
+      receiptOutput.appendChild(link);
+    } catch (e) {
+      wpSay("Submission stopped/rejected: " + (e.shortMessage || e.message || e) +
+        ". Check wallet activity before retrying.");
+    } finally {
+      wpSubmit.disabled = !wpHash;
+    }
+  });
+
+  if (window.ethereum) {
+    window.ethereum.on?.("accountsChanged", () => location.reload());
+    window.ethereum.on?.("chainChanged", () => location.reload());
+  }
+
 </script>
 </body>
 </html>
